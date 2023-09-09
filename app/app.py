@@ -20,6 +20,8 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
 
+from models import Book
+
 @app.route('/')
 def index():
     return "Главная страница"
