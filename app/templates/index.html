@@ -1,7 +1,60 @@
 {% extends 'base.html' %}
+{% from 'pagination.html' import render_pagination %}
+{% from 'books/macros.html' import render_book_item %}
+{% from 'books/macros.html' import render_last_popular_book_item %}
+
+
+{% block head %}
+{{ super() }}
+<script defer src="{{ url_for('static', filename='scripts/delete_book.js') }}"></script>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex h-100 flex-column align-items-center justify-content-center">
-<!-- Список книг должен быть тут -->
+<div class="container">
+    <div class="my-5">
+
+        <h2 class="mb-3 text-center text-uppercase font-weight-bold">Каталог книг</h2>
+
+
+        <div class="books-list container-fluid mt-3 mb-3">
+            {% for book in books %}
+            {{render_book_item(current_user, book)}}
+            {% endfor %}
+        </div>
+
+        <div class="mb-5">
+            {{ render_pagination(pagination, request.endpoint) }}
+        </div>
+
+        {% if current_user.is_authenticated and current_user.can('create') %}
+        <div class="text-center my-3">
+            <a class="btn btn-lg btn-dark" href="{{ url_for('new') }}">Добавить книгу</a>
+        </div>
+        {% endif %}
+        {% if current_user.is_authenticated and current_user.can('delete') %}
+        <!-- Modal to confirm the deletion -->
+        <div class="modal fade" id="deleteBook" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Удаление книги</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите удалить книгу <span id="bookLogin"></span>?</p>
+                        <form class="d-none" action="" method="POST">
+                            <input type="submit" id="deleteBookButton">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <label class="btn btn-danger" for="deleteBookButton">Удалить</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

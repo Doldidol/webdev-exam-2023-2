@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, abort, send_from_directory
 from flask_login import login_required
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
@@ -21,7 +21,7 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
 
-from models import Book, Genre
+from models import Book, Genre, Image
 from auth import init_login_manager, check_rights, bp as auth_bp
 
 init_login_manager(app)
@@ -30,7 +30,19 @@ app.register_blueprint(auth_bp)
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    page = request.args.get('page', 1, type=int)
+    books = Book.query.order_by(Book.id.desc())
+    pagination = books.paginate(page=page, per_page=app.config['PER_PAGE'])
+    books = pagination.items
+    return render_template("index.html", pagination=pagination, books=books)
+
+@app.route('/images/<image_id>')
+def image(image_id):
+    img = Image.query.get(image_id)
+    if img is None:
+        abort(404)
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               img.file_name)
 
 from tool import ImageSaver
 
@@ -125,3 +137,4 @@ def edit(book_id):
                            action_category='edit',
                            genres=genres,
                            book=book,)
+
