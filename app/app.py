@@ -3,6 +3,7 @@ from flask_login import login_required
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import os
 
 app = Flask(__name__)
 application = app
@@ -138,3 +139,30 @@ def edit(book_id):
                            genres=genres,
                            book=book,)
 
+
+# Удаление книги
+
+@app.route('/<int:book_id>/delete', methods=['POST'])
+@login_required
+@check_rights('delete')
+def delete(book_id):
+    book = Book.query.get(book_id)
+    # Проверка зависимости у обложки
+    references = len(Book.query.filter_by(image_id=book.image.id).all())
+    try:
+        db.session.delete(book)
+        # Если зависимость единственная, то обложку можно удалить
+        if references == 1:
+            image = Image.query.get(book.image.id)
+            delete_path = os.path.join(
+                app.config['UPLOAD_FOLDER'],
+                image.file_name)
+            db.session.delete(image)
+            os.remove(delete_path)
+        db.session.commit()
+        flash('Удаление книги прошло успешно', 'success')
+    except:
+        db.session.rollback()
+        flash('Во время удаления книги произошла ошибка', 'danger')
+
+    return redirect(url_for('index'))

@@ -176,7 +176,7 @@
             {% endif %}
             {% if current_user.can('delete') %}
             <li class="list-group-item text-center actions-li">
-                <button class="text-black btn btn-danger" data-url="{# url_for('delete', book_id=book.id)#}"
+                <button class="text-black btn btn-danger" data-url="{{ url_for('delete', book_id=book.id)}}"
                     data-bs-toggle="modal" data-bs-target="#deleteBook">Удалить</button>
             </li>
             {% endif %}
