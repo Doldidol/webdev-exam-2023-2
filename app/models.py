@@ -7,6 +7,7 @@ from sqlalchemy.dialects.mysql import YEAR
 import markdown
 import bleach
 from app import db
+from users_policy import UsersPolicy
 
 books_genres = db.Table(
     "books_genres",
@@ -128,7 +129,22 @@ class User(db.Model, UserMixin):
         return " ".join([self.last_name,
                          self.first_name,
                          self.middle_name or ""])
+    def is_admin(self):
+        return self.role_id == current_app.config['ADMIN_ROLE_ID']
 
+    def is_moderator(self):
+        return self.role_id == current_app.config['MODERATOR_ROLE_ID']
+
+    def is_user(self):
+        return self.role_id == current_app.config['USER_ROLE_ID']
+
+    def can(self, action, record=None):
+        users_policy = UsersPolicy(record)
+        method = getattr(users_policy, action, None)
+        if method:
+            return method()
+        return False
+    
     def __repr__(self):
         return "<User %r>" % self.login
 
