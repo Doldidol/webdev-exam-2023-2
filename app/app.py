@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -21,7 +21,12 @@ db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
 
 from models import Book
+from auth import init_login_manager, bp as auth_bp
+
+init_login_manager(app)
+
+app.register_blueprint(auth_bp)
 
 @app.route('/')
 def index():
-    return "Главная страница"
+    return render_template("index.html")
