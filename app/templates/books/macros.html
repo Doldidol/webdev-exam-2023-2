@@ -12,7 +12,7 @@
     <form method="POST" action="{% if action_category == 'create' %}
     {{ url_for('new') }}
     {% elif action_category == 'edit' %}
-<!-- Редактирование книги -->
+    {{ url_for('edit', book_id = book.id) }}
     {% endif %}" enctype="multipart/form-data">
         <input type="hidden" name="author_id" value="{{ current_user.id }}">
         <div class="mb-3 row">

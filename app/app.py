@@ -85,3 +85,43 @@ def new():
                         action_category='create',
                         genres=genres,
                         book={})
+
+
+@app.route('/<int:book_id>/edit', methods=["POST", "GET"])
+@login_required
+@check_rights('edit')
+def edit(book_id):
+    if request.method == "POST":
+        params = extract_params(BOOKS_PARAMS)
+        params['year_release'] = int(params['year_release'])
+        params['pages_volume'] = int(params['pages_volume'])
+        genres = request.form.getlist('genres')
+        genres_list = []
+        book = Book.query.get(book_id)
+        book.name = params['name']
+        book.author = params['author']
+        book.publisher = params['publisher']
+        book.year_release = params['year_release']
+        book.pages_volume = params['pages_volume']
+        book.short_desc = params['short_desc']
+
+        for i in genres:
+            genre = Genre.query.filter_by(id=i).first()
+            genres_list.append(genre)
+        book.genres = genres_list
+        try:
+            db.session.add(book)
+            db.session.commit()
+            flash('Книга успешно обновлена', 'success')
+            return redirect(url_for('index'))
+        except:
+            db.session.rollback()
+
+        flash('При обновления данных возникла ошибка. Проверьте корректность введённых данных.', 'danger')
+
+    book = Book.query.get(book_id)
+    genres = Genre.query.all()
+    return render_template('books/create_edit.html',
+                           action_category='edit',
+                           genres=genres,
+                           book=book,)
