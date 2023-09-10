@@ -165,7 +165,7 @@
         <ul class="list-group ">
             <li class="list-group-item text-center actions-li">
                 <a class="custom_link text-black btn btn-info"
-                    href="{#url_for('show', book_id=book.id)#}">Подробнее</a>
+                    href="{{url_for('show', book_id=book.id)}}">Подробнее</a>
             </li>
             {% if current_user.is_authenticated %}
             {% if current_user.can('edit') %}

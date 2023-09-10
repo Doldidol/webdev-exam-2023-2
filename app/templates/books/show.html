@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="title-area position-relative" style="background-image: url({{ book.image.url }});">
+    <div class="h-100 w-100 py-5 d-flex text-center position-absolute" style="background-color: rgba(0, 0, 0, 0.65);">
+        <div class="m-auto">
+            <h1 class="title mb-3 font-weight-bold">{{ book.name }}</h1>
+            <p class="mb-3 mx-auto">
+                <span>★</span> <span>{{ "%.2f" | format(book.rating) }}</span>
+            </p>
+            {% if book.genres %}
+            <h3>жанр(ы):{% for genre in book.genres %} 
+                {% if loop.last %}
+                {{genre.name}}.
+                {% else %}
+                {{genre.name}};
+                {% endif %}
+                {% endfor %}</h3>
+            {% endif %}
+            <div>
+                <h3>Автор: {{book.author}}</h3>
+            </div>
+            <div>
+                <h3>Издательство: {{book.publisher}}</h3>
+            </div>
+            <div>
+                <h3>Год выпуска: {{book.year_release}}</h3>
+            </div>
+            <div>
+                <h3>Объем (в страницах): {{book.pages_volume}}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <section class="book_short_desc mb-5">
+        <h2 class="mb-3 text-center text-uppercase font-weight-bold">О книге</h2>
+        <p>{{ book.short_desc | safe() }}</p>
+    </section>
+</div>
+
+{% endblock %}

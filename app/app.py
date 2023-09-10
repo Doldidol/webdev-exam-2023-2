@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, abort, send_from_directory
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -166,3 +166,12 @@ def delete(book_id):
         flash('Во время удаления книги произошла ошибка', 'danger')
 
     return redirect(url_for('index'))
+
+# Просмотр книги
+@app.route('/<int:book_id>')
+def show(book_id):
+    book = Book.query.get(book_id)
+    book.prepare_to_html()
+    return render_template('books/show.html',
+                           book=book)
+
