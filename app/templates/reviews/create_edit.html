@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% from 'reviews/macros.html' import review_form %}
+{% from 'pagination.html' import render_pagination %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+{% endblock %}
+
+{% block content %}
+{{ review_form(book_id) }}
+<script>
+    const easymde = new EasyMDE({
+        element: document.getElementById('text'),
+    });
+</script>
+{% endblock %}

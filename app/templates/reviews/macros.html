@@ -1,0 +1,44 @@
+{% macro review_form(book_id) %}
+<div class="container">
+    <h2 class="my-3 text-center text-uppercase font-weight-bold">Оставьте рецензию</h2>
+
+    <form method="POST" action="{{ url_for('reviews.new', book_id=book_id) }}"
+        enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="rating">Оценка</label>
+            <select name="rating" id="rating">
+                <option value="5" {% if request.form.rating=='5' %}selected{% endif %}>отлично</option>
+                <option value="4" {% if request.form.rating=='4' %}selected{% endif %}>хорошо</option>
+                <option value="3" {% if request.form.rating=='3' %}selected{% endif %}>удовлетворительно</option>
+                <option value="2" {% if request.form.rating=='2' %}selected{% endif %}>неудовлетворительно</option>
+                <option value="1" {% if request.form.rating=='1' %}selected{% endif %}>плохо</option>
+                <option value="0" {% if request.form.rating=='0' %}selected{% endif %}>ужасно</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="text">Текст рецензии</label>
+            <textarea class="form-control" name="text" id="text" cols="30" rows="10">{{request.form.text}}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+    </form>
+</div>
+{% endmacro %}
+
+{% macro review_view(review) %}
+<!-- Отзыв -->
+<div class="review p-3 mb-3">
+    <div class="d-flex">
+        <div class="flex-shrink-0">
+            <img src="{{ url_for('static', filename='images/default-profile-picture.jpeg') }}"
+                style="max-width: 6rem;" class="rounded-circle" alt="Sample Image">
+        </div>
+        <div class="flex-grow-1  ms-3">
+            <h5>{{review.user.login}} <small class="text-muted"><i>Posted on
+                        {{review.created_at.strftime('%d.%m.%Y %H:%M')}}</i></small></h5>
+            <p><span>★</span> {{review.rating}}</p>
+            <p>{{review.text | safe() }}</p>
+        </div>
+    </div>
+</div>
+
+{% endmacro %}

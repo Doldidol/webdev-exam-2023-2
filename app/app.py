@@ -24,10 +24,12 @@ migrate = Migrate(app, db)
 
 from models import Book, Genre, Image
 from auth import init_login_manager, check_rights, bp as auth_bp
+from reviews import bp as reviews_bp
 
 init_login_manager(app)
 
 app.register_blueprint(auth_bp)
+app.register_blueprint(reviews_bp)
 
 @app.route('/')
 def index():
