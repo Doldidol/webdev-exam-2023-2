@@ -198,7 +198,16 @@ def delete(book_id):
     book = Book.query.get(book_id)
     # Проверка зависимости у обложки
     references = len(Book.query.filter_by(image_id=book.image.id).all())
+       
     try:
+         # Удаление всех зависимостей
+        for item in BookVisits.query.filter_by(book_id=book_id):
+            db.session.delete(item)
+        for item in LastBookVisits.query.filter_by(book_id=book_id):
+            db.session.delete(item)
+        for item in Review.query.filter_by(book_id=book_id):
+            db.session.delete(item)
+
         db.session.delete(book)
         # Если зависимость единственная, то обложку можно удалить
         if references == 1:
