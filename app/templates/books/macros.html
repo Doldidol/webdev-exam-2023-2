@@ -112,12 +112,12 @@
             {% if current_user.can('edit') %}
             <li class="list-group-item text-center actions-li">
                 <a class="custom_link text-black btn btn-warning"
-                    href="{{url_for('books.edit', book_id=book.id)}}">Редактировать</a>
+                    href="{{url_for('edit', book_id=book.id)}}">Редактировать</a>
             </li>
             {% endif %}
             {% if current_user.can('delete') %}
             <li class="list-group-item text-center actions-li">
-                <button class="text-black btn btn-danger" data-url="{{ url_for('books.delete', book_id=book.id)}}"
+                <button class="text-black btn btn-danger" data-url="{{ url_for('delete', book_id=book.id)}}"
                     data-bs-toggle="modal" data-bs-target="#deleteBook">Удалить</button>
             </li>
             {% endif %}

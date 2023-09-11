@@ -32,19 +32,8 @@
                     </div>
                 </a>
 
+                <a class="text-white link" href="{{ url_for('logs.users_statistics')}}">Административная панель</a>
                 {% if current_user.is_authenticated %}
-                <!-- <div class="dropdown d-flex" style="width: 200px;">
-                    <div class="profile text-white " title="{{ current_user.full_name }}" id="dropdownMenuButton"
-                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <input class="form-control" type="text" aria-label="Disabled input example"
-                            value="{{ current_user.full_name }}" disabled>
-                    </div>
-                    <div class="dropdown-menu" id="dropdown" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" href="#">Профиль</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a>
-                    </div>
-                </div> -->
                 <div class="dropdown d-flex" style="width: 200px;">
                     <div class="text-white">
                         {{ current_user.full_name }}

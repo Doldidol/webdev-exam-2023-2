@@ -26,11 +26,13 @@ migrate = Migrate(app, db)
 from models import Book, Genre, Image, Review, BookVisits, LastBookVisits
 from auth import init_login_manager, check_rights, bp as auth_bp
 from reviews import bp as reviews_bp
+from logs import bp as logs_bp
 
 init_login_manager(app)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(reviews_bp)
+app.register_blueprint(logs_bp)
 
 
 # Функция для получнеия последних 5 книг
@@ -48,8 +50,13 @@ def get_five_last_books():
     else:
         last_books = session.get("last_books")
     result = []
-    for book_log in last_books:
-        result.append(Book.query.get(book_log.book_id))
+    if last_books:
+        if current_user.is_authenticated:
+            for book_log in last_books:
+                result.append(Book.query.get(book_log.book_id))
+        else:
+            for book_log in last_books:
+                result.append(Book.query.get(book_log))
     return result
 
 def get_top_five_books():
@@ -250,7 +257,7 @@ def creating_last_book_log(book_id, user_id):
     new_log = None
 
     # Извлекаем данные, когда пользователь последний раз получал доступ
-    book_log = (BookVisits.query
+    book_log = (LastBookVisits.query
                    # Фильтруем по конкретной книге
                    .filter_by(book_id=book_id)  
                    # Фильтруем по конкретному пользователю
@@ -303,7 +310,6 @@ def loger():
         if current_user.is_authenticated:
             creating_last_book_log(request.view_args.get('book_id'),
                                    current_user.id)
-        creating_book_visits(current_user.get_id(), request.view_args.get('book_id'))
         book_visit_logs_params = {
             'user_id': current_user.get_id(),
             'book_id': request.view_args.get('book_id'),
