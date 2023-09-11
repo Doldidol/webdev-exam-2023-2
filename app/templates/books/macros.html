@@ -81,7 +81,7 @@
 
 {% macro render_last_popular_book_item(current_user, book, views_count) %}
 
-<div class="col-12 col-lg-3 p-3 border rounded mb-3" data-url="{# url_for('books.show', book_id=book.id) #}">
+<div class="col-12 col-lg-3 p-3 border rounded mb-3" data-url="{{ url_for('show', book_id=book.id) }}">
     <div class="row">
         <!-- Обложка книги -->
         <div class="d-flex align-items-center justify-content-center mb-3">
@@ -106,7 +106,7 @@
         <ul class="list-group ">
             <li class="list-group-item text-center actions-li">
                 <a class="custom_link text-black btn btn-info"
-                    href="{{url_for('books.show', book_id=book.id)}}">Подробнее</a>
+                    href="{{url_for('show', book_id=book.id)}}">Подробнее</a>
             </li>
             {% if current_user.is_authenticated %}
             {% if current_user.can('edit') %}
@@ -129,7 +129,7 @@
 {% endmacro %}
 
 {% macro render_book_item(current_user, book, views_count) %}
-<div class="row p-3 border rounded mb-3" data-url="{# url_for('books.show', book_id=book.id) #}">
+<div class="row p-3 border rounded mb-3" data-url="{# url_for('show', book_id=book.id) #}">
     <div class="row">
         <!-- Обложка книги -->
         <div class="col-md-3 mb-3 mb-md-0 d-flex align-items-center justify-content-center">

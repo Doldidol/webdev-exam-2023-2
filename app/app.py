@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, abort, send_from_directory
+from flask import Flask, render_template, request, redirect, session, url_for, flash, abort, send_from_directory
 from flask_login import login_required, current_user
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 application = app
@@ -22,7 +23,7 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
 
-from models import Book, Genre, Image, Review
+from models import Book, Genre, Image, Review, BookVisits, LastBookVisits
 from auth import init_login_manager, check_rights, bp as auth_bp
 from reviews import bp as reviews_bp
 
@@ -31,13 +32,52 @@ init_login_manager(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(reviews_bp)
 
+
+# Функция для получнеия последних 5 книг
+# Функция нужна, для корректного отображения
+# для анонимных пользователей
+def get_five_last_books():
+    # Если пользователь вошел в систему
+    if current_user.is_authenticated:
+        # Получаем последние 5 книг
+        last_books = (LastBookVisits.query
+                            .filter_by(user_id=current_user.id)
+                            .order_by(LastBookVisits.created_at.desc())
+                            .limit(5)
+                            .all())
+    else:
+        last_books = session.get("last_books")
+    result = []
+    for book_log in last_books:
+        result.append(Book.query.get(book_log.book_id))
+    return result
+
+def get_top_five_books():
+    start_time = datetime.now() - timedelta(days=3 * 30)
+    top_five_books = (db.session
+                        .query(BookVisits.book_id, db.func.count(BookVisits.id))
+                        .filter(start_time <= BookVisits.created_at)
+                        .group_by(BookVisits.book_id)
+                        .order_by(db.func.count(BookVisits.id).desc())
+                        .limit(5).all())
+    result = []
+    for i, book_item in enumerate(top_five_books):
+        book = Book.query.get(top_five_books[i][0])
+        result.append((book, top_five_books[i][1]))
+    return result
+
 @app.route('/')
 def index():
+    last_books = get_five_last_books()
+    top_five_books = get_top_five_books()
+
     page = request.args.get('page', 1, type=int)
     books = Book.query.order_by(Book.id.desc())
     pagination = books.paginate(page=page, per_page=app.config['PER_PAGE'])
     books = pagination.items
-    return render_template("index.html", pagination=pagination, books=books)
+    return render_template("index.html", pagination=pagination, books=books,
+                           last_books = last_books,
+                           top_five_books = top_five_books)
 
 @app.route('/images/<image_id>')
 def image(image_id):
@@ -192,3 +232,97 @@ def show(book_id):
                            reviews=reviews,
                            user_review=user_review)
 
+
+#  Создание логов для книги
+def creating_book_visits(user_id, book_id):
+    try:
+        visit_log_params = {
+            'user_id': user_id,
+            'book_id': book_id,
+        }
+        db.session.add(BookVisits(**visit_log_params))
+        db.session.commit()
+    except:
+        db.session.rollback()
+
+
+def creating_last_book_log(book_id, user_id):
+    new_log = None
+
+    # Извлекаем данные, когда пользователь последний раз получал доступ
+    book_log = (BookVisits.query
+                   # Фильтруем по конкретной книге
+                   .filter_by(book_id=book_id)  
+                   # Фильтруем по конкретному пользователю
+                   .filter_by(user_id=current_user.id) 
+                   .first())
+    if book_log:
+        # У найденой записи обновляем время доступа
+        book_log.created_at = db.func.now()
+    # Если пользователь еще не получал доступа к книге,
+    # то создаем новую запись
+    else:
+        new_log = LastBookVisits(book_id=book_id, user_id=user_id)
+   
+    # Если была создана запись
+    if new_log:
+        try:
+            db.session.add(new_log)
+            db.session.commit()
+        except:
+            db.session.rollback()
+
+
+def save_last_books(book_id):
+    data_from_cookies = session.get('last_books')
+
+    if data_from_cookies:
+        if book_id in data_from_cookies:
+            data_from_cookies.remove(book_id)
+            data_from_cookies.insert(0, book_id)
+        else:
+            data_from_cookies.insert(0, book_id)
+    
+    # Если логов ранее не было сохранено
+    if not data_from_cookies:
+        data_from_cookies = [book_id]
+
+    session['last_books'] = data_from_cookies
+
+@app.before_request
+def loger():
+    if (request.endpoint == 'static'
+        or request.endpoint == 'image'
+            or request.endpoint == 'users_statistics'):
+        return
+    if request.endpoint == 'show':
+        # Если пользователь анонимен, то необходимо
+        # лог запись сохранять в куки
+        if current_user.is_anonymous:
+            save_last_books(request.view_args.get('book_id'))
+        if current_user.is_authenticated:
+            creating_last_book_log(request.view_args.get('book_id'),
+                                   current_user.id)
+        creating_book_visits(current_user.get_id(), request.view_args.get('book_id'))
+        book_visit_logs_params = {
+            'user_id': current_user.get_id(),
+            'book_id': request.view_args.get('book_id'),
+        }
+        start = datetime.now() - timedelta(days=1)
+        today_visits = (BookVisits.query
+                        .filter_by(book_id=request.view_args.get('book_id'))
+                        .filter(start <= BookVisits.created_at))
+        if current_user.is_authenticated:
+            today_visits = today_visits.filter_by(
+                user_id=current_user.get_id())
+        else:
+            today_visits = today_visits.filter(BookVisits.user_id.is_(None))
+        today_visits_int = len(today_visits.all())
+        # < 10, т.к. нумерация идет с 0
+        if today_visits_int < 10:
+            try:
+                db.session.add(BookVisits(**book_visit_logs_params))
+                db.session.commit()
+            except:
+                db.session.rollback()
+    

@@ -11,6 +11,35 @@
 
 {% block content %}
 <div class="container">
+    <section class="top-5 my-5">
+        <h2 class="mb-3 text-center text-uppercase font-weight-bold">Недавно просмотренные книги</h2>
+
+        {% if last_books %}
+        <div class="row gap-3">
+            {% for book in last_books %}
+            {{render_last_popular_book_item(current_user, book)}}
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center">Нет данных для отображения</p>
+
+        {% endif %}
+
+    </section>
+    <section class="top-5 my-5">
+        <h2 class="mb-3 text-center text-uppercase font-weight-bold">Популярные книги</h2>
+        {% if top_five_books %}
+        <div class="row gap-3">
+
+        {% for book in top_five_books %}
+        {{render_last_popular_book_item(current_user, book[0], book[1])}}
+        {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center">Нет данных для отображения</p>
+        {% endif %}
+    </section>
+
     <div class="my-5">
 
         <h2 class="mb-3 text-center text-uppercase font-weight-bold">Каталог книг</h2>

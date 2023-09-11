@@ -176,3 +176,19 @@ class BookVisits(db.Model):
 
     def __repr__(self):
         return "<VisitLog %r>" % self.id
+    
+class LastBookVisits(db.Model):
+
+    __tablename__ = "last_book_visits"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False,
+                           server_default=sa.sql.func.now())
+
+    book = db.relationship("Book")
+    user = db.relationship("User")
+
+    def __repr__(self):
+        return "<LastVisitLog %r>" % self.id
