@@ -22,7 +22,7 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
 
-from models import Book, Genre, Image
+from models import Book, Genre, Image, Review
 from auth import init_login_manager, check_rights, bp as auth_bp
 from reviews import bp as reviews_bp
 
@@ -174,6 +174,21 @@ def delete(book_id):
 def show(book_id):
     book = Book.query.get(book_id)
     book.prepare_to_html()
+    # Получаем все рецензии
+    reviews = Review.query.filter_by(book_id=book_id)
+    # Каждую из рецензий подготавливаем для отображения
+    for review in reviews:
+        review.prepare_to_html()
+    # Заглушка, т.к. у пользователя может не быть рецензии
+    user_review = None
+    # Если у пользователя есть идентификатор
+    if current_user.get_id():
+        # Извлекаем рецензии пользователя
+        user_review = reviews.filter_by(user_id=current_user.id).first()
+    # Получаем все рецензии
+    reviews.all()
     return render_template('books/show.html',
-                           book=book)
+                           book=book,
+                           reviews=reviews,
+                           user_review=user_review)
 
