@@ -82,6 +82,8 @@ def index():
     books = Book.query.order_by(Book.id.desc())
     pagination = books.paginate(page=page, per_page=app.config['PER_PAGE'])
     books = pagination.items
+    if last_books == [None, None]:
+        last_books = []
     return render_template("index.html", pagination=pagination, books=books,
                            last_books = last_books,
                            top_five_books = top_five_books)

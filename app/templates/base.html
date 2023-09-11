@@ -31,8 +31,9 @@
                         </div>
                     </div>
                 </a>
-
+                {% if current_user.is_authenticated and current_user.can('get_logs')%}
                 <a class="text-white link" href="{{ url_for('logs.users_statistics')}}">Административная панель</a>
+                {% endif %}
                 {% if current_user.is_authenticated %}
                 <div class="dropdown d-flex" style="width: 200px;">
                     <div class="text-white">
